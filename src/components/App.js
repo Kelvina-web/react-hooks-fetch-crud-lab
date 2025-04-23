@@ -1,77 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import QuestionList from './QuestionList';
-import QuestionForm from './QuestionForm';
-import AdminNavBar from './AdminNavBar';
+import React, { useState, useEffect } from "react";
+import AdminNavBar from "./AdminNavBar";
+import QuestionForm from "./QuestionForm";
+import QuestionList from "./QuestionList";
 
-const App = () => {
-  const [questions, setQuestions] = useState([]);
+function App() {
   const [page, setPage] = useState("List");
+  const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        const response = await fetch('http://localhost:4000/questions');
-        const data = await response.json();
-        setQuestions(data);
-      } catch (error) {
-        console.error('Error fetching questions:', error);
-      }
-    };
-
-    fetchQuestions();
+    fetch("http://localhost:4000/questions")
+      .then(r => r.json())
+      .then(data => setQuestions(data));
   }, []);
 
-  const handleAddQuestion = async (newQuestion) => {
-    try {
-      const response = await fetch('http://localhost:4000/questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newQuestion),
-      });
-      const savedQuestion = await response.json();
-      setQuestions([...questions, savedQuestion]);
-    } catch (error) {
-      console.error('Error adding question:', error);
-    }
-  };
+  function addQuestion(newQuestion) {
+    setQuestions([...questions, newQuestion]);
+  }
 
-  const handleDeleteQuestion = async (id) => {
-    try {
-      await fetch(`http://localhost:4000/questions/${id}`, { method: 'DELETE' });
-      setQuestions(questions.filter((q) => q.id !== id));
-    } catch (error) {
-      console.error('Error deleting question:', error);
-    }
-  };
+  function deleteQuestion(id) {
+    setQuestions(questions.filter((question) => question.id !== id));
+  }
 
-  const handleUpdateQuestion = async (id, updatedData) => {
-    try {
-      const response = await fetch(`http://localhost:4000/questions/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData),
-      });
-      const updatedQuestion = await response.json();
-      setQuestions(questions.map((q) => (q.id === id ? updatedQuestion : q)));
-    } catch (error) {
-      console.error('Error updating question:', error);
-    }
-  };
+  function updateQuestion(updatedQuestion) {
+    setQuestions(
+      questions.map((question) =>
+        question.id === updatedQuestion.id ? updatedQuestion : question
+      )
+    );
+  }
 
   return (
-    <div>
+    <main>
       <AdminNavBar onChangePage={setPage} />
       {page === "Form" ? (
-        <QuestionForm onAddQuestion={handleAddQuestion} />
+        <QuestionForm onAddQuestion={addQuestion} />
       ) : (
         <QuestionList
           questions={questions}
-          onDeleteQuestion={handleDeleteQuestion}
-          onUpdateQuestion={handleUpdateQuestion}
+          onDeleteQuestion={deleteQuestion}
+          onUpdateQuestion={updateQuestion}
         />
       )}
-    </div>
+    </main>
   );
-};
+}
 
 export default App;
